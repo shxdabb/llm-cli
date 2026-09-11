@@ -6,6 +6,7 @@ import requests
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 
+
 def main() -> None:
 	api_key = os.getenv("GEMINI_API_KEY")
 	if not api_key:
