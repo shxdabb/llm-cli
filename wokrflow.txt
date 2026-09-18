@@ -1,0 +1,506 @@
+# Moonwork — Phase 1 Progress
+
+## Project
+
+**Project name:** Moonwork
+**Repository:** `llm-cli`
+**GitHub:** `https://github.com/shxdabb/llm-cli.git`
+
+Moonwork is a learning project to understand how LLM APIs work mechanically before using abstractions/frameworks.
+
+The current project is a CLI-based smart terminal helper.
+
+---
+
+## My Learning Goal
+
+I know basic Python, decent DSA, and have a good system-design foundation, but I am new to AI engineering.
+
+I learn best by **building and understanding**, not by reading huge amounts of documentation first.
+
+Use AI and official documentation heavily, but I want to understand the code that gets written.
+
+### Important learning rule
+
+Do NOT dump the entire project/codebase on me.
+
+Build incrementally.
+
+When implementing something:
+
+1. Explain what we are trying to accomplish.
+2. Explain why we need it.
+3. Let me attempt/write the code when practical.
+4. Give hints or small pieces when I'm stuck.
+5. If AI generates code, explain every important part afterward.
+6. Use official Gemini REST API documentation as the source of truth.
+7. Help me understand the underlying HTTP/JSON mechanics rather than hiding them behind SDKs.
+
+ChatGPT = teacher, explainer, debugger, architecture guide.
+
+GitHub Copilot = in-editor coding assistant/autocomplete.
+
+---
+
+# Phase 1 — Raw LLM API Calls
+
+## Current API provider
+
+We originally considered Anthropic, but changed the project to:
+
+**Google Gemini Developer API**
+
+Use a Gemini API key.
+
+The key is configured as an environment variable called:
+
+```text
+GEMINI_API_KEY
+```
+
+The actual key must NEVER be written into:
+
+* `main.py`
+* `progress.txt`
+* `README.md`
+* GitHub
+* any committed file
+
+The API key is a secret.
+
+---
+
+# Current Machine Setup
+
+I am developing on Windows using:
+
+* VS Code
+* Git Bash terminal inside VS Code
+* Python 3
+* Git/GitHub
+
+The Gemini API key was configured as a persistent Windows environment variable.
+
+Verification command:
+
+```bash
+python -c "import os; print(bool(os.getenv('GEMINI_API_KEY')))"
+```
+
+Expected result:
+
+```text
+True
+```
+
+The key itself must never be printed or shared.
+
+---
+
+# Python Environment
+
+VS Code prompted about using a virtual environment.
+
+I selected **Yes**.
+
+The project should therefore use a project-local virtual environment, typically:
+
+```text
+.venv/
+```
+
+`.venv/` must NOT be committed to GitHub.
+
+Add it to `.gitignore` if it isn't already there:
+
+```text
+.venv/
+```
+
+---
+
+# Dependency
+
+For raw HTTP requests we will use:
+
+```text
+requests
+```
+
+Do NOT use:
+
+* Gemini SDK
+* Anthropic SDK
+* LangChain
+* LlamaIndex
+* agent frameworks
+* vector databases
+* RAG
+* MCP
+* tool/function calling
+
+Those are intentionally excluded from Phase 1.
+
+The purpose is to understand the underlying API call first.
+
+---
+
+# Architecture
+
+The basic architecture is:
+
+```text
+Terminal
+   ↓
+main.py
+   ↓
+requests
+   ↓
+Gemini REST API
+   ↓
+JSON response
+   ↓
+main.py
+   ↓
+Terminal
+```
+
+We are NOT using FastAPI.
+
+FastAPI would be useful if we were building our own web API/server, for example:
+
+```text
+Frontend
+   ↓
+FastAPI
+   ↓
+Python logic
+   ↓
+Gemini API
+```
+
+But Moonwork Phase 1 is a CLI application, so plain Python is intentional.
+
+---
+
+# Phase 1 Build Order
+
+## Checkpoint 1 — Single API call
+
+Start with:
+
+* no conversation history
+* one hardcoded prompt
+* raw HTTP request
+* print the response
+* understand every important request/response field
+
+Before writing the code, explain:
+
+* Gemini REST endpoint
+* HTTP method
+* URL
+* headers
+* API key authentication
+* JSON request body
+* contents/parts structure
+* response JSON structure
+* how to extract generated text
+
+The goal is to understand:
+
+```text
+Python
+  ↓
+HTTP POST
+  ↓
+Gemini
+  ↓
+JSON response
+```
+
+---
+
+## Checkpoint 2 — User input
+
+Wrap the API call in something conceptually like:
+
+```python
+ask(prompt: str) -> str
+```
+
+Allow input through:
+
+* `input()`
+* or `sys.argv`
+
+The user should be able to run the CLI and provide a prompt.
+
+---
+
+## Checkpoint 3 — Conversation history
+
+Add multi-turn conversation.
+
+The important learning goal is to understand that the model does not magically remember previous requests.
+
+We will maintain conversation history locally and send the relevant history again with each request.
+
+Conceptually:
+
+```text
+User → message 1
+Model → response 1
+
+User → message 2
+Model → response 2
+
+User → message 3
+```
+
+The request becomes increasingly larger because previous conversation turns are included.
+
+This should be used to understand:
+
+* conversation history
+* context window
+* tokens
+* input tokens vs output tokens
+* why long conversations eventually become expensive/limited
+* how applications manage context
+
+Gemini's exact REST payload/role semantics should be checked against the current official Gemini documentation rather than assuming Anthropic's message format.
+
+---
+
+# Checkpoint 4 — Smart Feature
+
+Allow the CLI to work with:
+
+### Local file
+
+For example:
+
+```text
+error.txt
+```
+
+Read the file and send its contents to Gemini with an instruction such as explaining or summarizing it.
+
+### URL
+
+Eventually allow a URL to be supplied.
+
+Fetch the page content locally and provide relevant text to Gemini.
+
+Optional dependency if needed:
+
+```text
+BeautifulSoup
+```
+
+Do not add dependencies until they are actually needed.
+
+---
+
+# Checkpoint 5 — Polish
+
+Eventually add:
+
+* basic error handling
+* `--help`
+* cleaner CLI interaction
+* optionally conversation persistence
+
+---
+
+# Concepts I Need To Understand
+
+By the end of Phase 1, I should be able to explain:
+
+### API key
+
+What it is and why Gemini requires it.
+
+### Environment variables
+
+Why the API key is stored outside the source code.
+
+Python retrieves it using:
+
+```python
+os.getenv("GEMINI_API_KEY")
+```
+
+### HTTP
+
+Understand:
+
+* GET vs POST
+* URL
+* headers
+* request body
+* JSON
+* response status
+* response body
+
+### LLM request
+
+Understand what actually gets sent to Gemini.
+
+### LLM response
+
+Understand the raw JSON returned by Gemini and how the generated text is extracted.
+
+### Tokens
+
+Understand roughly what tokens are and why they matter.
+
+### Context window
+
+Understand why conversation history makes requests larger.
+
+### Temperature
+
+Understand what it controls and when it matters.
+
+### Maximum output tokens
+
+Understand how output length is constrained.
+
+### Frameworks
+
+After building the raw implementation, understand why libraries/frameworks such as LangChain exist and what boilerplate they abstract away.
+
+---
+
+# Git Workflow
+
+The GitHub repository is the bridge between my machines.
+
+I use two laptops and GitHub Codespaces.
+
+Do NOT assume files automatically sync between machines.
+
+### Before working
+
+```bash
+git pull
+```
+
+### After making changes
+
+```bash
+git add .
+git commit -m "describe change"
+git push
+```
+
+Both laptops can use the same `main` branch for now.
+
+Do NOT create separate branches just because they are different laptops.
+
+Branches can be introduced later for actual feature development.
+
+---
+
+# GitHub Codespaces
+
+Tomorrow I will continue this project in GitHub Codespaces.
+
+Important:
+
+The API key stored as an environment variable on my personal Windows laptop will NOT automatically exist inside Codespaces.
+
+Codespaces is a separate environment.
+
+The desired setup is:
+
+```text
+GitHub repository
+       ↓
+GitHub Codespace
+       ↓
+GEMINI_API_KEY secret/environment variable
+       ↓
+Python
+       ↓
+Gemini REST API
+```
+
+Configure the API key in Codespaces securely.
+
+Do NOT commit the API key or `.env` file to the repository.
+
+If using a `.env` locally in the future, ensure it is in `.gitignore`.
+
+---
+
+# Current Status — September 8, 2026
+
+Completed:
+
+* Created project/repository.
+* Git initialized.
+* Branch changed to `main`.
+* GitHub remote configured.
+* Project files created.
+* GitHub workflow understood.
+* Chosen Gemini Developer API instead of Anthropic.
+* Gemini API key created/available.
+* Persistent Windows environment variable configured.
+* Confirmed Python can access `GEMINI_API_KEY`.
+* VS Code virtual environment setup accepted.
+
+Current immediate task:
+
+1. Make sure `.venv/` is in `.gitignore`.
+2. Install `requests` inside the virtual environment:
+
+```bash
+python -m pip install requests
+```
+
+3. Verify:
+
+```bash
+python -c "import requests; print(requests.__version__)"
+```
+
+4. Verify API key availability without printing it:
+
+```bash
+python -c "import os; print(bool(os.getenv('GEMINI_API_KEY')))"
+```
+
+Expected:
+
+```text
+True
+```
+
+5. Commit and push the project/progress file.
+
+Do NOT start implementing the Gemini API call until these setup steps are confirmed.
+
+---
+
+# Tomorrow's Starting Point
+
+When I open this project in GitHub Codespaces, first:
+
+1. Read this `progress.txt`.
+2. Check the Git repository status.
+3. Configure `GEMINI_API_KEY` securely in Codespaces.
+4. Create/use the Python virtual environment.
+5. Install `requests`.
+6. Verify the environment variable without printing the secret.
+7. Then begin **Checkpoint 1 — Single Raw Gemini API Call**.
+
+Before coding Checkpoint 1, explain the current Gemini REST API request structure using official documentation.
+
+Do not use an SDK.
+
+Do not jump ahead to conversation history, RAG, agents, MCP, or tool calling.
+
+Build Phase 1 incrementally.

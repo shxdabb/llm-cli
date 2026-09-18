@@ -1,0 +1,70 @@
+Moonwork Phase 1 — Checkpoint Status
+
+Completed
+
+1. Project setup and learning plan
+   - Repository created and configured
+   - Git workflow understood
+   - Gemini Developer API chosen instead of Anthropic
+   - GEMINI_API_KEY configured as environment variable
+   - VS Code virtual environment accepted
+   - requests dependency installed and verified
+
+2. Environment verification
+   - API key is available in the environment without printing it
+   - Python can access os.getenv("GEMINI_API_KEY")
+
+3. Checkpoint 1 — Single raw Gemini API call
+   - Hardcoded prompt used
+   - Raw HTTP POST request sent to Gemini
+   - JSON payload constructed manually
+   - API key passed via the official REST API pattern
+   - Response JSON inspected
+   - Generated text extracted and printed
+   - No SDK used
+
+Covered so far
+
+- Setup complete
+- Environment ready
+- Phase 1 Checkpoint 1 completed
+
+Remaining checkpoints in Phase 1
+
+1. Checkpoint 2 — User input
+   Goal: make the CLI accept prompt input from the user.
+   Items:
+   - wrap the API call in a function like ask(prompt: str) -> str
+   - allow input through input() or sys.argv
+   - keep the raw HTTP request logic but make the prompt dynamic
+
+2. Checkpoint 3 — Conversation history
+   Goal: understand multi-turn chat and context accumulation.
+   Items:
+   - maintain local conversation history
+   - send previous turns back to Gemini with each request
+   - understand context window, tokens, and why longer conversations get expensive
+   - observe how the request JSON grows over time
+
+3. Checkpoint 4 — Smart feature
+   Goal: let the CLI work with external input.
+   Items:
+   - read a local file and send its content to Gemini
+   - optionally accept a URL and fetch page content
+   - optionally use BeautifulSoup if webpage parsing is needed
+
+4. Checkpoint 5 — Polish
+   Goal: make the CLI easier to use.
+   Items:
+   - basic error handling
+   - --help support
+   - cleaner CLI interaction
+   - optional conversation persistence
+
+Overall Phase 1 summary
+
+Completed: setup + environment verification + Checkpoint 1
+Remaining: Checkpoints 2, 3, 4, and 5
+
+Next recommended step:
+Start Checkpoint 2: accept user input and convert the current hardcoded prompt into a reusable ask(prompt) function.
