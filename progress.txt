@@ -76,3 +76,9 @@ The checkpoint is complete when:
 - an API error produces a useful diagnostic instead of silently printing an empty answer.
 
 Record what the request and response looked like, with the secret redacted, in `progress.txt` after verification. Then continue to Checkpoint 2: accept a prompt from the user through `input()` or `sys.argv`.
+
+
+#installed fcc-claudeCode need to configure the models selection, fcc integration in claudeCode
+
+fugure out how gemini_api_key was recognized, then solve the gemini api key issue for 
+our llm project, revise whats written and continue 
