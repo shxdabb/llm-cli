@@ -504,3 +504,37 @@ Do not use an SDK.
 Do not jump ahead to conversation history, RAG, agents, MCP, or tool calling.
 
 Build Phase 1 incrementally.
+
+## Checkpoint Status
+
+- Checkpoint 1 - Single raw Gemini API call: complete
+- Checkpoint 2 - User prompt input: implemented
+- Checkpoint 3 - Conversation history: next
+
+## Checkpoint 2 - User Prompt Input
+
+`main.py` now defines `ask(prompt: str) -> str`. The function owns the raw
+Gemini HTTP request and returns the generated text. `main()` reads one prompt
+with `input()`, rejects blank input, calls `ask(prompt)`, and prints the answer.
+
+Each run is still one independent request; conversation history is intentionally
+not part of this checkpoint.
+
+Run:
+
+```bash
+python main.py
+```
+
+The current Linux terminal does not have `GEMINI_API_KEY`, so configure it in
+the shell before live verification:
+
+```bash
+export GEMINI_API_KEY="your-key-here"
+python -c "import os; print(bool(os.getenv('GEMINI_API_KEY')))"
+```
+
+The command should print `True`. Never print the key itself or commit it.
+
+Checkpoint 3 will add a local `contents` list and resend previous user and
+model turns for multi-turn conversation.

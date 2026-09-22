@@ -77,6 +77,103 @@ The checkpoint is complete when:
 
 Record what the request and response looked like, with the secret redacted, in `progress.txt` after verification. Then continue to Checkpoint 2: accept a prompt from the user through `input()` or `sys.argv`.
 
+### Implementation completed
+
+`main.py` now has an `ask(prompt: str) -> str` function. It performs the raw
+HTTP POST, parses the generated text from
+`candidates[0].content.parts[0].text`, and returns that text to `main()`.
+
+`main()` reads one prompt with `input()`, rejects empty input, and prints the
+answer. The API key is still read only from `GEMINI_API_KEY`; it is not placed
+in source code or output.
+
+This checkpoint is implemented. Live verification in the current Linux
+terminal is blocked because `GEMINI_API_KEY` is not set in that shell. Configure
+it without printing the secret, then rerun `python main.py`.
+
+## Checkpoint 3 - Conversation history
+
+Next, keep a local `contents` list, append each user prompt and model answer,
+and resend the complete list for every request. This will demonstrate that the
+Gemini API is stateless and that conversation context is maintained by the
+client.
+
+## Session Log - Checkpoint 2 Work
+
+This section records what was done in this session, in order. The API key issue
+was observed but intentionally not solved yet.
+
+### 1. Files inspected
+
+Read the current versions of:
+
+- `main.py`
+- `wokrflow.txt`
+- `progress.txt`
+- `readme.md`
+- `fcc-test.txt`
+- `checkpoints.txt`
+
+The important finding was that `main.py` still used a hardcoded prompt and
+printed the complete JSON response. The workflow already described the next
+step as an `ask(prompt: str) -> str` function.
+
+### 2. Code changes made
+
+In `main.py`:
+
+- Added `ask(prompt: str) -> str`.
+- Moved the Gemini request into that function.
+- Kept the raw `requests.post(...)` call and the existing JSON payload.
+- Extracted the answer from
+	`candidates[0].content.parts[0].text`.
+- Changed `main()` to ask for input with `input("Prompt: ")`.
+- Added a check that rejects an empty prompt.
+- Removed the unused `json` import.
+- The program still makes only one request and does not have conversation
+	history.
+
+### 3. Documentation changes made
+
+Updated `wokrflow.txt`, `progress.txt`, and `readme.md` to describe Checkpoint
+2 and identify Checkpoint 3, conversation history, as the next step.
+
+The notes now explain that the API key is read from `GEMINI_API_KEY` and is not
+placed in source code or printed.
+
+### 4. Commands that were run
+
+```bash
+git status --short
+python -m py_compile main.py
+python -c "import os; print('GEMINI_API_KEY set:', bool(os.getenv('GEMINI_API_KEY')))"
+python -c "import requests; print('requests:', requests.__version__)"
+printf 'Explain what an HTTP POST request is in one sentence.\n' | python main.py
+printf '\n' | python main.py
+git diff --check
+```
+
+### 5. Results and error encountered
+
+- Python syntax validation passed.
+- `requests` was installed and available, version `2.32.5`.
+- `git diff --check` passed.
+- The blank-input test correctly raised `ValueError: Prompt cannot be empty`.
+- The prompt/API test reached `ask()` but stopped before making the request:
+
+```text
+RuntimeError: GEMINI_API_KEY is not set
+```
+
+- The environment check returned `GEMINI_API_KEY set: False`.
+- No API response was received in this session because the key was missing.
+- The API key setup is intentionally left for a separate, slower step.
+
+### 6. Current state
+
+Checkpoint 2 code is written and locally syntax-checked. It is not live-tested
+against Gemini in this Linux shell yet. Do not start Checkpoint 3 until the
+current behavior and the environment setup are understood.
 
 #installed fcc-claudeCode need to configure the models selection, fcc integration in claudeCode
 
