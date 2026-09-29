@@ -98,7 +98,7 @@ and resend the complete list for every request. This will demonstrate that the
 Gemini API is stateless and that conversation context is maintained by the
 client.
 
-## Session Log - Checkpoint 2 Work
+22 Sep 6:30 pm ## Session Log - Checkpoint 2 Work
 
 This section records what was done in this session, in order. The API key issue
 was observed but intentionally not solved yet.
@@ -171,11 +171,25 @@ RuntimeError: GEMINI_API_KEY is not set
 
 ### 6. Current state
 
-Checkpoint 2 code is written and locally syntax-checked. It is not live-tested
-against Gemini in this Linux shell yet. Do not start Checkpoint 3 until the
-current behavior and the environment setup are understood.
+Checkpoint 2 is implemented: the CLI accepts a prompt and `ask()` sends it to
+Gemini. The code passed syntax validation. A live Gemini call was not completed
+because `GEMINI_API_KEY` was absent from this Linux shell. This means the API
+request was not verified against Gemini; it does not mean the Python code failed
+to parse or that Checkpoint 3 cannot be implemented.
+
+## Checkpoint 3 — Conversation history
+
+`main.py` now keeps an in-memory `contents` list. Each prompt is appended as a
+`user` turn; the full list is sent to Gemini; and the returned answer is
+appended as a `model` turn. The CLI accepts multiple prompts until `exit`,
+`quit`, or end-of-input. A mocked two-turn behavior check confirmed that the
+second request includes the first user prompt, its model response, and the new
+user prompt. No live Gemini request has been made in this Linux shell because
+`GEMINI_API_KEY` is still unavailable here. The Checkpoint 3 request/history
+behavior is tested independently of the API key; live verification remains
+pending.
 
 #installed fcc-claudeCode need to configure the models selection, fcc integration in claudeCode
 
 fugure out how gemini_api_key was recognized, then solve the gemini api key issue for 
-our llm project, revise whats written and continue 
+our llm project, revise whats written and continue ->sorted
