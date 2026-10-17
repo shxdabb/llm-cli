@@ -271,6 +271,13 @@ This should be used to understand:
 
 Gemini's exact REST payload/role semantics should be checked against the current official Gemini documentation rather than assuming Anthropic's message format.
 
+Implementation in `main.py` keeps a local `contents` list. Each user prompt is
+appended with role `user`; the complete list is sent in the request; then the
+returned answer is appended with role `model`. The CLI repeats this until the
+user enters `exit` or `quit`, or input ends. A mocked two-turn check confirmed
+that the second request includes the earlier user/model exchange. A live Gemini
+chat still needs to be tested in an environment where `GEMINI_API_KEY` is set.
+
 ---
 
 # Checkpoint 4 — Smart Feature

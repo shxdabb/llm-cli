@@ -6,18 +6,13 @@ API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-fl
 
 
 
-def ask(prompt: str) -> str:
+def ask(contents: list[dict[str, object]]) -> str:
 	api_key = os.getenv("GEMINI_API_KEY")
 	if not api_key:
 		raise RuntimeError("GEMINI_API_KEY is not set")
 
 	payload = {
-		"contents": [
-			{
-				"role": "user",
-				"parts": [{"text": prompt}],
-			}
-		],
+		"contents": contents,
 		"generationConfig": {
 			"maxOutputTokens": 200,
 			"temperature": 0.2,
@@ -39,11 +34,22 @@ def ask(prompt: str) -> str:
 
 
 def main() -> None:
-	prompt = input("Prompt: ").strip()
-	if not prompt:
-		raise ValueError("Prompt cannot be empty")
+	contents: list[dict[str, object]] = []
+	while True:
+		try:
+			prompt = input("You: ").strip()
+		except EOFError:
+			break
 
-	print(ask(prompt))
+		if prompt.lower() in {"exit", "quit"}:
+			break
+		if not prompt:
+			continue
+
+		contents.append({"role": "user", "parts": [{"text": prompt}]})
+		answer = ask(contents)
+		contents.append({"role": "model", "parts": [{"text": answer}]})
+		print(f"Gemini: {answer}")
 
 
 if __name__ == "__main__":
