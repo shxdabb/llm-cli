@@ -34,6 +34,14 @@ Completed
    - Chat continues until `exit`, `quit`, or end-of-input
    - History flow verified with mocked requests
 
+6. Checkpoint 4 — Local text-file context
+   - `/file` requests a local path and a task for Gemini
+   - UTF-8 file text, filename, and instruction are sent as one user turn
+   - Existing `contents` history is preserved, including the model response
+   - Invalid paths, read/decode errors, empty files, and blank instructions
+     are reported without adding the invalid request to history
+   - Mocked local behavior verified; live Gemini call remains unverified
+
 Covered so far
 
 - Setup complete
@@ -44,14 +52,7 @@ Covered so far
 
 Remaining checkpoints in Phase 1
 
-1. Checkpoint 4 — Smart feature
-   Goal: let the CLI work with external input.
-   Items:
-   - read a local file and send its content to Gemini
-   - optionally accept a URL and fetch page content
-   - optionally use BeautifulSoup if webpage parsing is needed
-
-2. Checkpoint 5 — Polish
+1. Checkpoint 5 — Polish
    Goal: make the CLI easier to use.
    Items:
    - basic error handling
@@ -59,10 +60,15 @@ Remaining checkpoints in Phase 1
    - cleaner CLI interaction
    - optional conversation persistence
 
+2. Optional follow-up — URL input
+   - fetch and extract useful page text safely
+   - consider an HTML parser only if needed
+
 Overall Phase 1 summary
 
-Completed: setup + Checkpoints 1, 2, and 3 implementation
-Remaining: live Gemini verification + Checkpoints 4 and 5
+Completed: setup + Checkpoints 1, 2, 3, and 4 implementation
+Remaining: live Gemini verification + Checkpoint 5; URL input is optional
 
 Next recommended step:
-Configure `GEMINI_API_KEY` in this Linux environment and test a real multi-turn chat. Then continue to Checkpoint 4.
+Configure `GEMINI_API_KEY` in this Linux environment to test real multi-turn
+and file-context calls, then continue to Checkpoint 5.

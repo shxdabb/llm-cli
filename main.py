@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import requests
 
@@ -46,7 +47,50 @@ def main() -> None:
 		if not prompt:
 			continue
 
-		contents.append({"role": "user", "parts": [{"text": prompt}]})
+		if prompt.lower() == "/file":
+			try:
+				file_path = input("File path: ").strip()
+			except EOFError:
+				break
+
+			if not file_path:
+				print("File path cannot be empty.")
+				continue
+
+			path = Path(file_path).expanduser()
+			if not path.is_file():
+				print(f"Not a file or file does not exist: {path}")
+				continue
+
+			try:
+				file_text = path.read_text(encoding="utf-8")
+			except (OSError, UnicodeDecodeError) as exc:
+				print(f"Could not read {path}: {exc}")
+				continue
+
+			if not file_text.strip():
+				print(f"File is empty: {path}")
+				continue
+
+			try:
+				instruction = input("What should Gemini do with this file? ").strip()
+			except EOFError:
+				break
+
+			if not instruction:
+				print("Instruction cannot be empty.")
+				continue
+
+			user_message = (
+				f"{instruction}\n\n"
+				f"File: {path.name}\n"
+				f"--- File contents ---\n{file_text}\n"
+				f"--- End of file contents ---"
+			)
+		else:
+			user_message = prompt
+
+		contents.append({"role": "user", "parts": [{"text": user_message}]})
 		answer = ask(contents)
 		contents.append({"role": "model", "parts": [{"text": answer}]})
 		print(f"Gemini: {answer}")

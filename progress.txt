@@ -193,3 +193,33 @@ pending.
 
 fugure out how gemini_api_key was recognized, then solve the gemini api key issue for 
 our llm project, revise whats written and continue ->sorted
+
+## Checkpoint 4 — Local text-file context
+
+Implemented in `main.py` on 2026-10-19.
+
+- Type `/file` in the chat loop to enter file mode.
+- Provide a local path and an instruction for Gemini in separate prompts.
+- `pathlib.Path` expands `~`, checks for a regular file, and reads UTF-8 text.
+- Missing/non-file paths, filesystem or decoding errors, blank instructions,
+  and empty files are reported. A rejected file request is not appended to
+  chat history.
+- The instruction, filename, and file text form one normal `user` turn. The
+  existing `ask(contents)` sends the entire history; Gemini's reply is added
+  as a `model` turn, preserving Checkpoint 3 behavior.
+- Ordinary chat and `exit`/`quit` remain supported. File contents are treated
+  as text only, are not persisted, and are not silently truncated. They count
+  toward the model's context window along with prior turns.
+
+Verification:
+
+- `python -m py_compile main.py` passed.
+- Mocked CLI checks passed for ordinary chat, file prompt/history composition,
+  and invalid/missing file handling.
+- A live Gemini call was not made because `GEMINI_API_KEY` is unavailable in
+  this shell. The mock tests validate local behavior, not live API connectivity.
+
+Next: Checkpoint 5 — polish CLI usage, API/network/response error handling,
+`--help`, and evaluate optional conversation persistence. The source-of-truth
+notes explain how this checkpoint connects to 1–3 and list future tools that
+could replace specific low-level pieces.

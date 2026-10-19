@@ -280,33 +280,28 @@ chat still needs to be tested in an environment where `GEMINI_API_KEY` is set.
 
 ---
 
-# Checkpoint 4 — Smart Feature
+# Checkpoint 4 — Local Text-File Context (Implemented)
 
-Allow the CLI to work with:
+In the chat loop, enter `/file`, provide a local file path, and give an
+instruction such as summarizing or explaining the file.
 
-### Local file
+`main.py` reads UTF-8 text with the standard-library `pathlib.Path`. It combines
+the instruction, filename, and contents into one user turn and appends it to
+the existing `contents` history. The same `ask(contents)` REST call is used as
+for ordinary chat; Gemini's reply is appended as a model turn. Invalid paths,
+read/decoding errors, empty files, and empty instructions are reported rather
+than sent.
 
-For example:
+This retains Checkpoint 1's visible HTTP/JSON request, Checkpoint 2's
+interactive input, and Checkpoint 3's client-managed conversation history.
+File text is part of that history for the current run and counts toward the
+context window. Files are treated as text, not executed, and are not silently
+truncated. Mocked local behavior has been verified; a live Gemini request
+still requires `GEMINI_API_KEY` in the running environment.
 
-```text
-error.txt
-```
-
-Read the file and send its contents to Gemini with an instruction such as explaining or summarizing it.
-
-### URL
-
-Eventually allow a URL to be supplied.
-
-Fetch the page content locally and provide relevant text to Gemini.
-
-Optional dependency if needed:
-
-```text
-BeautifulSoup
-```
-
-Do not add dependencies until they are actually needed.
+URL fetching is optional follow-up work, not part of the implemented
+checkpoint. Add an HTML parser such as BeautifulSoup only if URL support is
+implemented and the parser is actually needed.
 
 ---
 

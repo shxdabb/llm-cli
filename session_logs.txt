@@ -42,3 +42,37 @@ What this change does
 
 These documentation changes record what happened and provide steps to
 understand before implementing Checkpoint 4.
+
+## Session Log — 2026-10-19 — Checkpoint 4
+
+### Code changes
+
+Updated `main.py` to support local UTF-8 text-file context:
+
+- `/file` enters a dedicated flow that asks for a path and an instruction.
+- `pathlib.Path` expands `~`, checks for a file, and reads UTF-8 text.
+- Missing/non-file paths, filesystem or decoding failures, blank instructions,
+  and empty files are reported without adding an invalid file request to
+  conversation history.
+- The task, filename, and file contents are composed into one user message.
+  That message uses the existing `contents` history and `ask(contents)` API
+  call; Gemini's answer is stored as a model turn as usual.
+- Normal chat and exit commands remain in the same loop. No framework,
+  additional package, URL fetcher, or persistence layer was added.
+
+### Documentation changes
+
+- Expanded the Checkpoint 4 source-of-truth section with code walkthrough,
+  data flow, its relationship to Checkpoints 1–3, verification guidance, and
+  future framework/library options mapped to the specific code they could
+  simplify.
+- Updated `progress.txt`, `checkpoints.txt`, and `wokrflow.txt` with the
+  implementation status and the next steps.
+
+### Verification and limitation
+
+- `python -m py_compile main.py` passed.
+- Mocked tests verified normal chat, file prompt composition, retained history
+  across follow-up turns, and invalid/missing-file handling.
+- Live Gemini behavior was not tested because `GEMINI_API_KEY` is unavailable
+  in this shell. This remains an outstanding verification item.

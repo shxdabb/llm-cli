@@ -34,72 +34,98 @@ A model’s **context window** is the amount of input and conversation history i
 
 The `maxOutputTokens: 200` setting at `line 17` limits the generated reply; it is **not** the total context-window size. The context limit is a property of the Gemini model/API, not set in this code.
 
-## Checkpoint 4 — Read a local text file
+## Checkpoint 4 — Add local text-file context
 
-### Goal
+### Goal and behavior
 
-Let a user give Gemini context from a local text file and ask a question about
-it, while keeping the existing multi-turn chat behavior. Implement local files
-first. Fetching URLs and parsing web pages are optional follow-up work, not
-needed for this first version.
+Checkpoint 4 extends the same terminal chat from Checkpoints 2 and 3: the user
+can type `/file`, provide a local text-file path and an instruction, and ask
+Gemini to summarize or explain that file. Ordinary prompts, `exit`/`quit`, and
+the in-memory conversation continue to work as before. URL fetching is a
+separate optional follow-up, not part of this implementation.
 
-### Plan the interaction
+### Walkthrough of the implementation in `main.py`
 
-Keep ordinary input as a normal chat message. Add a clear way to enter file
-mode, for example:
+1. `from pathlib import Path` uses Python's standard library to work with the
+   supplied path; no package is installed.
+2. The main input loop checks for `/file` after the existing quit and blank
+   input checks. For this mode it asks separately for the path and the task,
+   so paths containing spaces do not need command-line parsing.
+3. `Path(file_path).expanduser()` supports a leading `~`. Relative paths are
+   resolved from the process's current working directory (normally the
+   directory from which `python main.py` was started).
+4. `is_file()` rejects nonexistent paths and directories. `read_text` reads
+   UTF-8 text; expected filesystem and decoding errors are printed, and the
+   loop continues. Empty files and blank task instructions are also rejected.
+   File contents are read as data only; the program does not execute them.
+5. The code combines the user's instruction, file name, and text with labels
+   into one `user_message`. This is still ordinary text sent to Gemini, not a
+   separate attachment or a special file API.
+6. The message is appended once as a `user` turn to the same `contents` list
+   used by normal chat. The existing `ask(contents)` sends the entire history
+   to the Gemini REST endpoint. Its returned answer is appended as a `model`
+   turn. A later follow-up can therefore refer to the file while this process
+   remains running.
+7. The history is still in memory only and starts empty on program restart.
+   The entire file and prior chat are included in the request, so a sufficiently
+   large file or long conversation can exceed the model's context limit. This
+   version does not truncate file contents; Gemini/API errors remain visible
+   through the existing HTTP request behavior.
 
-1. The user enters `/file`.
-2. The CLI asks for the file path.
-3. The CLI asks what the user wants Gemini to do with the file, such as
-   summarize it or explain an error.
-4. The CLI reads the file and sends the request.
+### How this connects the checkpoints
 
-Asking for the path separately means paths containing spaces do not need
-special command-line parsing.
+The project deliberately builds from explicit mechanisms to higher-level
+features:
 
-### Implementation steps
+| Checkpoint | What it teaches | How the current code uses it |
+| --- | --- | --- |
+| 1 — Raw request | HTTP POST, JSON payload, API key, response parsing | `ask()` makes the REST request using `requests` and extracts returned text. |
+| 2 — User input | Read a prompt and turn it into an API request | The input loop accepts normal chat text; `/file` adds a second input path. |
+| 3 — History | The API is stateless; the client resends turns | `contents` holds `user` and `model` turns and is sent on every call. |
+| 4 — File context | Read external text and provide it as model context | File text is included in one user turn and then retained in the same history. |
+| 5 — Polish (planned) | Better CLI, diagnostics, and optional persistence | Still future work; this checkpoint adds only file-specific validation. |
 
-1. Import `Path` from Python's standard-library `pathlib`; do not add a package.
-2. Recognize `/file` in the existing input loop, before treating input as a
-   normal chat prompt. Leave the existing `exit`, `quit`, and ordinary-chat
-   behavior working.
-3. Read the path the user enters. Decide and explain that relative paths are
-   resolved from the directory where `python main.py` was run.
-4. Read the file as UTF-8 text with `Path.read_text(encoding="utf-8")`.
-   Restrict this checkpoint to text files; do not execute a file or treat its
-   contents as code to run.
-5. Handle a missing path, a path that is not a file, access/permission
-   failures, and text that cannot be decoded. Tell the user what went wrong
-   and return to the input loop; do not silently send an empty or partial file.
-6. Ask for an instruction about the file. Build one clear user message that
-   contains the instruction, the file name, and the file text, with labels or
-   separators so the model can distinguish the request from the supplied
-   material.
-7. Append that complete message once as a `user` turn in the existing
-   `contents` list. Send the whole list through the existing `ask(contents)`
-   function, then append Gemini's answer as a `model` turn exactly as normal.
-   This lets follow-up questions use the file discussion as conversation
-   context.
-8. Do not silently truncate a large file. The file text counts toward the
-   model's finite context window along with the existing chat history; if the
-   combined request is too large, Gemini may reject it. Keep size management
-   as a later improvement unless an actual limit is added and clearly reported.
+Data flow:
 
-### How to understand and verify it
+```text
+terminal input
+  -> normal prompt OR /file path + instruction
+  -> (file mode) Path reads UTF-8 text
+  -> one user turn appended to contents
+  -> ask(contents) builds JSON and sends HTTP POST
+  -> Gemini response text
+  -> model turn appended to contents and printed
+```
 
-- `Path` represents the supplied file path; `read_text` returns its text as a
-  Python string.
-- The file is not sent in a separate API request or as an attachment. Its text
-  becomes part of a normal Gemini `user` turn inside `contents`.
-- The same `contents` list is used for file requests and ordinary chat. It
-  still exists only in memory for the current program run.
-- Test with a small UTF-8 text file, ask for a summary, then ask a follow-up
-  question to confirm the file-related exchange remains in history.
-- Also test a missing file and an empty file. Errors should be explained; an
-  empty file should not be mistaken for useful context.
-- If `GEMINI_API_KEY` is unavailable, test the file-reading and prompt-building
-  behavior without a live request (for example, by mocking the API call).
+### Verification checklist
 
-Do not add URL fetching, BeautifulSoup, persistence, or a new chat framework
-for this checkpoint. Once local-file support is understood and verified, URL
-input can be considered separately.
+- Normal multi-turn chat and `exit`/`quit` still work.
+- `/file` with a small UTF-8 text file sends the task, file name, and content
+  as one user turn; a follow-up prompt can refer to that discussion.
+- Missing paths, directories, unreadable files, invalid UTF-8, blank paths,
+  blank instructions, and empty files produce a clear message and do not add a
+  failed file request to history.
+- Test request construction with a mocked Gemini call if no API key is
+  available. A live request is required only to verify end-to-end communication.
+- Large files are not silently truncated; context-size handling remains a
+  future improvement.
+
+### Future framework and library references
+
+The learning version intentionally keeps each layer visible. These tools could
+replace or simplify specific pieces later; none is required for Checkpoint 4:
+
+| Current piece | Possible later tool | What it would simplify/change |
+| --- | --- | --- |
+| `requests.post`, URL/headers/JSON construction, HTTP response handling in `ask()` | Google's official Gemini Python SDK (`google-genai`) | SDK methods construct provider requests and parse responses. This hides much of the raw HTTP/JSON mechanics taught in Checkpoint 1. |
+| Hand-written prompt loop and future option parsing | Python `argparse` (standard library) or Typer | Defines flags/subcommands and help output; it does not read files or call Gemini by itself. |
+| Manual text assembly and basic document context | LangChain document loaders/prompts or LlamaIndex readers/query engines | Provides reusable ingestion, chunking, indexing, and retrieval building blocks; adds abstractions and dependencies. |
+| Sending the whole `contents` list on every turn | Gemini chat/session support in the official SDK, or a framework's chat-memory component | Can manage history ergonomics, but memory is not automatically durable or unlimited; persistence and context limits still need design. |
+| `Path.read_text` for one local file | A framework's document loader, when multiple formats or sources are needed | Can standardize loading metadata and formats; for one UTF-8 text file, `pathlib` remains simpler. |
+| Manual URL fetching if added later | `requests` plus an HTML parser such as BeautifulSoup, or a framework URL loader | Fetches/extracts page text; network safety, page size, and content quality still need handling. |
+
+Frameworks do not replace the model, API key, context-window constraints, or
+application-specific error handling. Prefer adding one only when a concrete
+need (multiple formats, retrieval over many documents, a production CLI)
+justifies the extra abstraction. Re-check official provider documentation for
+current SDK names and behavior before a migration.
