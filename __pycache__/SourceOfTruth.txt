@@ -33,3 +33,73 @@ On the next loop, the new prompt is added to that same list, so the next request
 A model’s **context window** is the amount of input and conversation history it can consider in one request, measured in tokens. This code sends the entire `contents` history on every turn; it doesn’t limit or summarize that history. As a conversation grows, it can eventually approach the model’s context limit.
 
 The `maxOutputTokens: 200` setting at `line 17` limits the generated reply; it is **not** the total context-window size. The context limit is a property of the Gemini model/API, not set in this code.
+
+## Checkpoint 4 — Read a local text file
+
+### Goal
+
+Let a user give Gemini context from a local text file and ask a question about
+it, while keeping the existing multi-turn chat behavior. Implement local files
+first. Fetching URLs and parsing web pages are optional follow-up work, not
+needed for this first version.
+
+### Plan the interaction
+
+Keep ordinary input as a normal chat message. Add a clear way to enter file
+mode, for example:
+
+1. The user enters `/file`.
+2. The CLI asks for the file path.
+3. The CLI asks what the user wants Gemini to do with the file, such as
+   summarize it or explain an error.
+4. The CLI reads the file and sends the request.
+
+Asking for the path separately means paths containing spaces do not need
+special command-line parsing.
+
+### Implementation steps
+
+1. Import `Path` from Python's standard-library `pathlib`; do not add a package.
+2. Recognize `/file` in the existing input loop, before treating input as a
+   normal chat prompt. Leave the existing `exit`, `quit`, and ordinary-chat
+   behavior working.
+3. Read the path the user enters. Decide and explain that relative paths are
+   resolved from the directory where `python main.py` was run.
+4. Read the file as UTF-8 text with `Path.read_text(encoding="utf-8")`.
+   Restrict this checkpoint to text files; do not execute a file or treat its
+   contents as code to run.
+5. Handle a missing path, a path that is not a file, access/permission
+   failures, and text that cannot be decoded. Tell the user what went wrong
+   and return to the input loop; do not silently send an empty or partial file.
+6. Ask for an instruction about the file. Build one clear user message that
+   contains the instruction, the file name, and the file text, with labels or
+   separators so the model can distinguish the request from the supplied
+   material.
+7. Append that complete message once as a `user` turn in the existing
+   `contents` list. Send the whole list through the existing `ask(contents)`
+   function, then append Gemini's answer as a `model` turn exactly as normal.
+   This lets follow-up questions use the file discussion as conversation
+   context.
+8. Do not silently truncate a large file. The file text counts toward the
+   model's finite context window along with the existing chat history; if the
+   combined request is too large, Gemini may reject it. Keep size management
+   as a later improvement unless an actual limit is added and clearly reported.
+
+### How to understand and verify it
+
+- `Path` represents the supplied file path; `read_text` returns its text as a
+  Python string.
+- The file is not sent in a separate API request or as an attachment. Its text
+  becomes part of a normal Gemini `user` turn inside `contents`.
+- The same `contents` list is used for file requests and ordinary chat. It
+  still exists only in memory for the current program run.
+- Test with a small UTF-8 text file, ask for a summary, then ask a follow-up
+  question to confirm the file-related exchange remains in history.
+- Also test a missing file and an empty file. Errors should be explained; an
+  empty file should not be mistaken for useful context.
+- If `GEMINI_API_KEY` is unavailable, test the file-reading and prompt-building
+  behavior without a live request (for example, by mocking the API call).
+
+Do not add URL fetching, BeautifulSoup, persistence, or a new chat framework
+for this checkpoint. Once local-file support is understood and verified, URL
+input can be considered separately.

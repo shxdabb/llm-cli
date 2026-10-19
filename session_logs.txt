@@ -25,13 +25,20 @@ Work completed in this session
    - The next project checkpoint listed is Checkpoint 4: read external input
      such as a local file, with URL support listed as optional.
 
+3. Updated the source-of-truth notes for Checkpoint 4.
+   - Added a learning-oriented plan for local text-file input.
+   - Explained how to enter file mode, read UTF-8 text, add it to a user turn
+     in `contents`, preserve conversation history, handle file errors, and
+     verify the behavior.
+   - Kept URL fetching as optional follow-up work.
+
 Code changes since the previous checkpoint
 
-There are no application-code changes in this session. The only change is the
-addition of this documentation file, `session_logs.txt`.
+There are no application-code changes in this session. The documentation
+changes are this session log and the Checkpoint 4 section in
+`__pycache__/SourceOfTruth.txt`.
 
 What this change does
 
-This file provides a persistent record of the session, explains that no
-application code changed, summarizes the `.gitignore` discussion, and records
-the next project checkpoint for continuity.
+These documentation changes record what happened and provide steps to
+understand before implementing Checkpoint 4.
