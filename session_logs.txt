@@ -1,0 +1,37 @@
+Session Log — 2026-10-19
+
+Purpose
+
+This file records the work and decisions made in this session, including
+changes since the previous checkpoint and what those changes do.
+
+Previous checkpoint
+
+The previous checkpoint was a discussion of Python's `__pycache__` directory
+and the project's `.gitignore`. No project files were changed during that
+discussion.
+
+Work completed in this session
+
+1. Inspected the repository's root `.gitignore`.
+   - It currently contains an ignore rule for `.claude/`.
+   - It does not contain a rule for `__pycache__/` or `.pyc` files.
+   - Python creates `__pycache__` directories for compiled bytecode; Python
+     can regenerate those files.
+   - `.gitignore` tells Git which files or directories to leave untracked.
+
+2. Reviewed the existing project checkpoint notes.
+   - The project notes mark Checkpoints 1, 2, and 3 as implemented.
+   - The next project checkpoint listed is Checkpoint 4: read external input
+     such as a local file, with URL support listed as optional.
+
+Code changes since the previous checkpoint
+
+There are no application-code changes in this session. The only change is the
+addition of this documentation file, `session_logs.txt`.
+
+What this change does
+
+This file provides a persistent record of the session, explains that no
+application code changed, summarizes the `.gitignore` discussion, and records
+the next project checkpoint for continuity.

@@ -1,0 +1,35 @@
+Read 
+Completed with input: {
+  "path": "/workspaces/llm-cli/main.py"
+}
+
+Read 
+Completed with input: {
+  "path": "/workspaces/llm-cli/checkpoints.txt"
+}
+
+Ran terminal command: nl -ba main.py | sed -n '1,65p'
+
+### How Checkpoint 2 is satisfied
+
+The CLI gets each prompt from the user with `input("You: ")` in `main()`. It trims whitespace and skips blank prompts. The prompt is added to the request history, sent to Gemini, and the answer is printed.
+
+The `ask()` function handles the API request: it reads `GEMINI_API_KEY`, sends the conversation as JSON, checks for HTTP errors, and extracts Gemini’s response text in `main.py`.
+
+**One small difference from the checkpoint notes:** blank input is skipped rather than reported as an error.
+
+### How Checkpoint 3 is satisfied
+
+The `contents` list in `main()` holds the conversation so far:
+
+- At `line 49`, the current prompt is appended as a `user` turn.
+- At `line 50`, `ask(contents)` sends the history to Gemini.
+- At `line 51`, Gemini’s answer is appended as a `model` turn.
+
+On the next loop, the new prompt is added to that same list, so the next request includes the earlier prompts and answers. The list starts empty each time you run the program, so this history is **in memory only**—it isn’t saved after the program exits.
+
+### What the context window means here
+
+A model’s **context window** is the amount of input and conversation history it can consider in one request, measured in tokens. This code sends the entire `contents` history on every turn; it doesn’t limit or summarize that history. As a conversation grows, it can eventually approach the model’s context limit.
+
+The `maxOutputTokens: 200` setting at `line 17` limits the generated reply; it is **not** the total context-window size. The context limit is a property of the Gemini model/API, not set in this code.
