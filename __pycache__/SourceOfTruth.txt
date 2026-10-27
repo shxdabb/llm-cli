@@ -118,7 +118,7 @@ replace or simplify specific pieces later; none is required for Checkpoint 4:
 | Current piece | Possible later tool | What it would simplify/change |
 | --- | --- | --- |
 | `requests.post`, URL/headers/JSON construction, HTTP response handling in `ask()` | Google's official Gemini Python SDK (`google-genai`) | SDK methods construct provider requests and parse responses. This hides much of the raw HTTP/JSON mechanics taught in Checkpoint 1. |
-| Hand-written prompt loop and future option parsing | Python `argparse` (standard library) or Typer | Defines flags/subcommands and help output; it does not read files or call Gemini by itself. |
+| Hand-written prompt loop and future option parsing | Python `argparse` (standard library) or Typer | `argparse` now provides `--help`; it does not read files or call Gemini by itself. |
 | Manual text assembly and basic document context | LangChain document loaders/prompts or LlamaIndex readers/query engines | Provides reusable ingestion, chunking, indexing, and retrieval building blocks; adds abstractions and dependencies. |
 | Sending the whole `contents` list on every turn | Gemini chat/session support in the official SDK, or a framework's chat-memory component | Can manage history ergonomics, but memory is not automatically durable or unlimited; persistence and context limits still need design. |
 | `Path.read_text` for one local file | A framework's document loader, when multiple formats or sources are needed | Can standardize loading metadata and formats; for one UTF-8 text file, `pathlib` remains simpler. |
@@ -129,3 +129,29 @@ application-specific error handling. Prefer adding one only when a concrete
 need (multiple formats, retrieval over many documents, a production CLI)
 justifies the extra abstraction. Re-check official provider documentation for
 current SDK names and behavior before a migration.
+
+## Checkpoint 5 — CLI errors and history safety
+
+`main.py` now reports expected API failures through `ChatError`: a missing
+`GEMINI_API_KEY` is detected before HTTP, request timeouts and connection
+failures have actionable messages, non-success HTTP statuses report the status
+code, invalid JSON is distinguished from missing text, and malformed or empty
+candidate/content/parts structures cannot crash text extraction. Requests have
+a 30-second timeout. The key remains an environment variable and is never
+saved to disk.
+
+The chat loop constructs a temporary history for each request and commits both
+the user and model turns only after `ask()` returns successfully. A failed
+request is printed and the next prompt can continue without carrying the
+failed user turn into later context. The prior `/file` flow uses the same
+transaction and keeps its existing validation.
+
+The terminal UI supports argparse `--help` before entering the chat loop, a
+`/help` command, a welcome message, goodbye on `exit`/`quit`, and graceful
+handling of EOF and Ctrl+C. Optional persisted history remains out of scope:
+chat contents are memory-only and no key or history file is written.
+
+`test_main.py` uses mocked `requests.post` calls to validate timeout,
+connection, HTTP, JSON, missing-text, successful extraction, and request
+history behavior without requiring a live API key. A live Gemini request is
+still needed to verify provider connectivity.

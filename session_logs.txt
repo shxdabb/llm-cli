@@ -76,3 +76,43 @@ Updated `main.py` to support local UTF-8 text-file context:
   across follow-up turns, and invalid/missing-file handling.
 - Live Gemini behavior was not tested because `GEMINI_API_KEY` is unavailable
   in this shell. This remains an outstanding verification item.
+
+## Session Log — Checkpoint 5
+
+**Checktime: 28 October 2026, 12:30 am**
+
+### Code changes
+
+Updated `main.py` to make the chat CLI handle request and response failures
+clearly and preserve conversation state on failed turns:
+
+- Added `ChatError` for a missing `GEMINI_API_KEY`, request timeouts,
+  connection failures, non-2xx HTTP responses, invalid JSON, and responses
+  without usable text. The key is checked before making a request, and the
+  request always has a 30-second timeout.
+- Safely traversed response candidates, content, and parts, collecting
+  non-empty text while tolerating malformed or missing response fields.
+- Built each turn using a temporary history and committed it only after the
+  request succeeds. A failed user turn is therefore not included in later
+  requests.
+- Added argparse `--help`, an interactive `/help` command, welcome and goodbye
+  messages, and graceful exit on EOF or Ctrl+C.
+- Kept `/file` behavior and left optional persistence out of scope. Chat
+  history remains in memory; no API key or transcript is saved.
+
+### Tests and documentation
+
+- Added `test_main.py` with mocked HTTP responses for missing key, timeout,
+  connection error, HTTP 500, invalid JSON, missing response text, and
+  successful response extraction. Chat-loop tests cover history safety,
+  `--help`, EOF, and Ctrl+C.
+- Updated the Checkpoint 5 status in `checkpoints.txt`, implementation notes
+  in `progress.txt`, and the Checkpoint 5 explanation in
+  `__pycache__/SourceOfTruth.txt`.
+
+### Verification and limitation
+
+- `python -B -m unittest -v` passed all 9 tests.
+- Python syntax validation, `python main.py --help`, and `git diff --check`
+  passed.
+- No live Gemini call was made; `GEMINI_API_KEY` is unavailable in this shell.

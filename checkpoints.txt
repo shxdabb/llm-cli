@@ -52,13 +52,10 @@ Covered so far
 
 Remaining checkpoints in Phase 1
 
-1. Checkpoint 5 — Polish
-   Goal: make the CLI easier to use.
-   Items:
-   - basic error handling
-   - --help support
-   - cleaner CLI interaction
-   - optional conversation persistence
+None for the core Phase 1 CLI. Checkpoint 5 is implemented and mock-tested:
+API failures are reported clearly, unsuccessful turns do not enter history,
+`--help` and `/help` are available, and EOF/Ctrl+C exit cleanly. Optional
+conversation persistence is not implemented; history remains in memory only.
 
 2. Optional follow-up — URL input
    - fetch and extract useful page text safely
@@ -66,9 +63,10 @@ Remaining checkpoints in Phase 1
 
 Overall Phase 1 summary
 
-Completed: setup + Checkpoints 1, 2, 3, and 4 implementation
-Remaining: live Gemini verification + Checkpoint 5; URL input is optional
+Completed: setup + Checkpoints 1, 2, 3, 4, and 5 implementation
+Remaining: live Gemini verification; URL input is optional
 
 Next recommended step:
 Configure `GEMINI_API_KEY` in this Linux environment to test real multi-turn
-and file-context calls, then continue to Checkpoint 5.
+and file-context calls. Checkpoint 5 has been verified locally with mocked
+HTTP calls; no live API request was made.

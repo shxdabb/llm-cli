@@ -223,3 +223,30 @@ Next: Checkpoint 5 — polish CLI usage, API/network/response error handling,
 `--help`, and evaluate optional conversation persistence. The source-of-truth
 notes explain how this checkpoint connects to 1–3 and list future tools that
 could replace specific low-level pieces.
+
+## Checkpoint 5 — CLI polish and failure-safe history
+
+Implemented on 2026-10-27 in `main.py`.
+
+- Added `ChatError` for missing API keys, timeouts, connection failures, HTTP
+  errors, invalid JSON, and responses without usable text. API key validation
+  happens before the request; requests always use a 30-second timeout.
+- The response parser safely walks candidates, content, and parts, skipping
+  malformed entries and collecting non-empty text instead of raising indexing
+  or attribute errors.
+- Each turn is sent as a temporary `pending` history. The committed `contents`
+  history is updated with user and model turns only after `ask()` succeeds, so
+  failed requests do not poison later context.
+- Added argparse `--help`, a `/help` command, welcome/goodbye messages, and
+  graceful handling of EOF and Ctrl+C. Existing `/file` behavior is preserved.
+- Optional persisted history was not added; the transcript stays in memory and
+  the API key is never written to a file.
+
+Verification:
+
+- Added `test_main.py` unittest mocks for missing key, timeout,
+  connection failure, HTTP 500, malformed JSON, missing response text,
+  successful extraction, transaction-safe history, and `--help`.
+- `python -B -m unittest -v` passed (9 tests, including EOF and Ctrl+C exits).
+- `python -m py_compile main.py test_main.py` and `git diff --check` passed.
+- No live Gemini call was made; this shell does not have `GEMINI_API_KEY`.
