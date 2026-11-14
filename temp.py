@@ -76,26 +76,46 @@
 
 # dfs(1)
 
-graph = {
-    0: [1],
-    1: [0],
-    2: [3],
-    3: [2],
-    4: []
-}
+# graph = {
+#     0: [1],
+#     1: [0],
+#     2: [3],
+#     3: [2],
+#     4: []
+# }
+
+# visited = set()
+# def dfs(node):
+    
+#     visited.add(node)
+
+#     for nodes in graph[node]:
+#         if nodes not in visited:
+#             dfs(nodes)
+
+# count = 0
+# for node in graph:
+#     if node not in visited:
+#         count+=1
+#         dfs(node)
+# print(count)
+
+
+graph = [
+    [2, 4],
+    [1, 3],
+    [2, 4],
+    [1, 3]
+]
+
+def dfs(node):
+    if node in visited:
+        return
+    visited.add(node)
+    print(node)
+    for nei in graph[node-1]:
+        dfs(nei)
+
 
 visited = set()
-def dfs(node):
-    
-    visited.add(node)
-
-    for nodes in graph[node]:
-        if nodes not in visited:
-            dfs(nodes)
-
-count = 0
-for node in graph:
-    if node not in visited:
-        count+=1
-        dfs(node)
-print(count)
+dfs(1)

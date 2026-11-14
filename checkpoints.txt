@@ -70,3 +70,81 @@ Next recommended step:
 Configure `GEMINI_API_KEY` in this Linux environment to test real multi-turn
 and file-context calls. Checkpoint 5 has been verified locally with mocked
 HTTP calls; no live API request was made.
+
+---
+
+# Phase 2 — Tool Calling (Planned; Not Implemented)
+
+Phase 2 will extend the existing Phase 1 chat loop. Continue using Python,
+`requests`, and the Gemini REST API directly; do not add an SDK or framework.
+The model may request a tool, but Python—not the model—executes it.
+
+Before implementing each checkpoint, first explain the goal and relevant
+request/response mechanics. Check the current official Gemini REST API
+documentation before settling the exact JSON fields or role semantics. Discuss
+the approach and let the learner brainstorm before writing code. Keep each
+change small, explain the important code afterward, and test with mocked
+responses before relying on a live API call.
+
+## Phase 2 Checkpoints
+
+1. **Understand Gemini function calling**
+   - Trace the existing `contents` history and raw request in `main.py`.
+   - Learn how function declarations are sent and how a function call appears
+     in Gemini's response JSON.
+   - Learn how a function result is represented in conversation history.
+   - Confirm the exact REST payload and response shape from current official
+     documentation; do not code in this checkpoint.
+
+2. **Declare and inspect the first tool**
+   - Add a declaration for a narrowly scoped `add(a, b)` function.
+   - Send the declaration with the existing chat request.
+   - Inspect and explain the raw response when Gemini requests the function.
+   - Keep ordinary text responses working; do not execute arbitrary model
+     text as code.
+
+3. **Execute the allowlisted `add` tool**
+   - Dispatch only recognized function names to Python functions implemented
+     by the application.
+   - Validate the supplied arguments and report unknown or invalid calls
+     clearly.
+   - Keep execution separate from parsing the model response.
+
+4. **Complete the tool round trip**
+   - Add the function result to the conversation using Gemini's documented
+     function-response structure.
+   - Send the updated conversation back to Gemini so it can produce a
+     user-facing answer.
+   - Handle normal text answers and tool calls in the chat loop without
+     losing prior conversation history.
+   - Verify the full request → function call → Python result → final answer
+     sequence with mocked HTTP responses.
+
+5. **Add a small calculator tool**
+   - Extend the tool set with a calculator that supports a clearly defined
+     set of arithmetic operations.
+   - Validate operation names and operands, and handle invalid input and
+     division by zero explicitly.
+   - Test that Gemini can choose the calculator for a calculation such as
+     `245 × 18`, and that the answer is based on the returned tool result.
+
+6. **Add a SQLite lookup tool**
+   - Agree on a small, local example database and the specific lookup the tool
+     should support before implementation.
+   - Keep the tool narrowly scoped; use parameterized SQL and avoid letting
+     model-provided text become unrestricted SQL.
+   - Handle missing data and database errors explicitly, and test the tool
+     without requiring a live Gemini request.
+
+7. **Verify and explain Phase 2**
+   - Run the focused test suite for ordinary chat, tool selection, argument
+     validation, tool execution, function-response history, and error cases.
+   - Verify that failed tool calls do not corrupt conversation history.
+   - Demonstrate the add, calculator, and SQLite flows, then explain the full
+     tool-calling loop and what the model does versus what Python does.
+
+## Phase 2 Status
+
+- Planned only; no Phase 2 application code has been started.
+- Next: discuss Checkpoint 1 and brainstorm the implementation approach
+  together before making code changes.

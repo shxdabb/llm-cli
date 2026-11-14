@@ -116,3 +116,22 @@ clearly and preserve conversation state on failed turns:
 - Python syntax validation, `python main.py --help`, and `git diff --check`
   passed.
 - No live Gemini call was made; `GEMINI_API_KEY` is unavailable in this shell.
+
+## Session Log — 2026-11-14 — Phase 2 Checkpoint Planning
+
+### Documentation changes
+
+- Expanded `checkpoints.txt` with a learning-first Phase 2 plan covering
+  Gemini function-calling mechanics, declaring and inspecting a tool,
+  allowlisted execution, the function-response round trip, a calculator, a
+  SQLite lookup, and end-to-end verification.
+- Marked Phase 2 as planned and not implemented. The next step is to discuss
+  the design and let the learner brainstorm before any code is written.
+- Kept the raw Gemini REST API and `requests` approach; the exact API payload
+  and response structure must be checked against current official
+  documentation before implementation.
+
+### Code changes and verification
+
+- No application code was changed.
+- No tests were run because this was a documentation-only planning update.

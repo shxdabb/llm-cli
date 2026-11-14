@@ -540,3 +540,30 @@ The command should print `True`. Never print the key itself or commit it.
 
 Checkpoint 3 will add a local `contents` list and resend previous user and
 model turns for multi-turn conversation.
+
+
+
+``````````````````````````````````````````````
+
+Phase 2: Tool Calling 🛠️
+
+What it is: teaching the LLM to request actions, while your code performs them.
+
+Core idea: the model never runs anything. It outputs “call add(2, 3)”, your Python executes it, and you hand the result back.
+
+What you build: extend your Phase 1 chat loop with:
+
+A tool schema (name, description, parameters) sent with every call
+A check: is the response text, or a function call request?
+If it’s a function call, run the real function and append the result to contents
+Call the model again so it writes the final answer
+
+Tools to implement: add(a, b) first, then a calculator and a SQLite lookup.
+
+Concepts you’ll learn:
+
+How the model picks a tool (it reads your descriptions)
+Why tool calls and results live in the history
+Why a good tool description matters as much as good code
+
+Done when: you can ask “what’s 245 × 18?” and the model uses your function instead of guessing, and you can explain the full loop out loud ✅
